@@ -1,0 +1,55 @@
+services:
+  whisper:
+    image: hwdsl2/whisper-server:cuda
+    container_name: whisper
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9000:9000/tcp"
+    volumes:
+      - ~/.cache/whisper:/var/lib/whisper
+      - ./whisper.env:/whisper.env:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+  piper:
+    image: kamilkrawiec/piper-openai-tts:latest
+    container_name: piper
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5000:5000/tcp"
+    env_file:
+      - ./piper.env
+    volumes:
+      - ~/.cache/piper/models:/data
+ 
+  kokoro:
+    image: hwdsl2/kokoro-server:cuda
+    container_name: kokoro
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8880:8880/tcp"
+    volumes:
+      - ~/.cache/kokoro:/var/lib/kokoro
+      - ./kokoro.env:/kokoro.env:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  ffmpeg:
+    image: funnyzak/ffmpeg-service:latest
+    container_name: ffmpeg
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080/tcp"
+    env_file:
+      - ./ffmpeg.env
+    volumes:
+      - ~/.cache/ffmpeg:/tmp/videos
